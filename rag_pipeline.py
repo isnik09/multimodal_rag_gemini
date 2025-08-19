@@ -1,23 +1,26 @@
-from typing import Optional
+from typing import Optional, Tuple, List, Dict
 from retriever import retrieve_documents, retrieve_with_image
 from gemini_api import query_gemini
 
 
-# ----------------------------
-# MULTIMODAL RAG PIPELINE
-# ----------------------------
 def multimodal_rag(
     text: Optional[str] = None,
     image_bytes: Optional[bytes] = None,
     faiss_index_path: str = "data/faiss_index/index.faiss",
     top_k: int = 5
-) -> str:
+) -> Tuple[str, List[Dict]]:
     """
     Multimodal Retrieval-Augmented Generation pipeline.
-    - If text provided → retrieve relevant chunks.
-    - If image provided → retrieve based on image embedding.
-    - Combine context with query.
-    - Query Gemini for grounded answer.
+    
+    Args:
+        text (str): User query text
+        image_bytes (bytes): Optional image for multimodal input
+        faiss_index_path (str): Path to FAISS index
+        top_k (int): Number of documents to retrieve
+    
+    Returns:
+        answer (str): Gemini grounded answer
+        retrieved (list[dict]): Retrieved chunks with metadata
     """
 
     retrieved = []
@@ -43,4 +46,4 @@ def multimodal_rag(
         context=context
     )
 
-    return answer
+    return answer, retrieved
