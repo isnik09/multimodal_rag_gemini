@@ -20,9 +20,9 @@ if uploaded_pdf:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
         tmp_pdf.write(uploaded_pdf.read())
         pdf_path = tmp_pdf.name
-    st.sidebar.success(f"Ingesting: {uploaded_pdf.name}...")
-    ingest_pdf(pdf_path, faiss_index_path=FAISS_INDEX_PATH)
-    st.sidebar.success("✅ PDF added to knowledge base!")
+    st.sidebar.info(f"Ingesting: {uploaded_pdf.name}...")
+    result_msg = ingest_pdf(pdf_path, faiss_index_path=FAISS_INDEX_PATH)
+    st.sidebar.success(result_msg)
 
 
 # ----------------------------
@@ -42,11 +42,20 @@ if st.button("Get Answer"):
     else:
         image_bytes = uploaded_image.read() if uploaded_image else None
         with st.spinner("🔍 Retrieving and querying Gemini..."):
-            answer = multimodal_rag(
+            answer, retrieved = multimodal_rag(
                 text=query_text if query_text else None,
                 image_bytes=image_bytes,
                 faiss_index_path=FAISS_INDEX_PATH,
                 top_k=TOP_K
             )
+
+        # Display Gemini’s answer
         st.subheader("💡 Answer:")
         st.write(answer)
+
+        # Display retrieved sources
+        if retrieved:
+            st.subheader("📂 Retrieved Sources")
+            for r in retrieved:
+                with st.expander(f"{r.get('source', 'unknown')} | Chunk {r.get('chunk_id')}"):
+                    st.write(r["content"])
